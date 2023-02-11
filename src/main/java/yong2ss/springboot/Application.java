@@ -4,6 +4,7 @@ import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactor
 import org.springframework.boot.web.server.WebServer;
 import org.springframework.boot.web.servlet.ServletContextInitializer;
 import org.springframework.boot.web.servlet.server.ServletWebServerFactory;
+import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -19,9 +20,13 @@ import java.io.IOException;
 public class Application {
 
     public static void main(String[] args) {
+        GenericApplicationContext applicationContext = new GenericApplicationContext();
+        applicationContext.registerBean(HelloController.class);
+        applicationContext.registerBean(SimpleHelloService.class);
+        applicationContext.refresh();
+
         ServletWebServerFactory serverFactory = new TomcatServletWebServerFactory();
         WebServer webServer = serverFactory.getWebServer(servletContext -> {
-            HelloController helloController = new HelloController();
             servletContext.addServlet("frontcontroller", new HttpServlet() {
                 @Override
                 protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -33,11 +38,11 @@ public class Application {
                             && req.getMethod().equals(HttpMethod.GET.name())) {
                         String name = req.getParameter("name");
 
+                        HelloController helloController = applicationContext.getBean(HelloController.class);
                         String result = helloController.hello(name);
 
-                        resp.setStatus(HttpStatus.OK.value());
-                        resp.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_PLAIN_VALUE);
-                        resp.getWriter().println("Hello " + result);
+                        resp.setContentType(MediaType.TEXT_PLAIN_VALUE);
+                        resp.getWriter().println(result);
                     } else if (req.getRequestURI().equals("/user")) {
                         // ...
                     } else {
