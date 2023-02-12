@@ -24,23 +24,6 @@ public class Application {
     }
 
     public static void main(String[] args) {
-        AnnotationConfigWebApplicationContext applicationContext = new AnnotationConfigWebApplicationContext() {
-            @Override
-            protected void onRefresh() {
-                super.onRefresh();
-
-                ServletWebServerFactory serverFactory = this.getBean(ServletWebServerFactory.class);
-                DispatcherServlet dispatcherServlet = this.getBean(DispatcherServlet.class);
-
-                WebServer webServer = serverFactory.getWebServer(servletContext -> {
-                    servletContext.addServlet("dispatcherServlet",
-                            dispatcherServlet
-                    ).addMapping("/*");
-                });
-                webServer.start();
-            }
-        };
-        applicationContext.register(Application.class);
-        applicationContext.refresh();
+        MySpringApplication.run(Application.class, args);
     }
 }
